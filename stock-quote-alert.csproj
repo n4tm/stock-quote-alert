@@ -6,4 +6,8 @@
         <RootNamespace>stock_quote_alert</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="PanoramicData.ConsoleExtensions" Version="1.0.1" />
+    </ItemGroup>
+
 </Project>

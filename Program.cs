@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace stock_quote_alert
+﻿namespace stock_quote_alert
 {
-    class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            Console.WriteLine("Hello World!");
+            EmailSender emailSender = new EmailSender();
+            var task = emailSender.SendGmail();
+            task.Wait();
         }
     }
 }
