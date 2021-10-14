@@ -5,7 +5,7 @@
         private static void Main()
         {
             EmailSender emailSender = new EmailSender();
-            var task = emailSender.SendGmail();
+            var task = emailSender.SendEmail();
             task.Wait();
         }
     }

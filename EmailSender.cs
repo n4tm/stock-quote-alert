@@ -12,6 +12,7 @@ namespace stock_quote_alert
         private readonly NetworkCredential _emailCredentials = new ();
         private readonly string _subject = "Stock Quote Alert!";
         private readonly string _message = "You may check out this stock: (content)";
+        private string _host = string.Empty;
 
         public EmailSender()
         {
@@ -24,6 +25,7 @@ namespace stock_quote_alert
             try
             {
                 _email = new MailMessage(_emailCredentials.UserName, _emailCredentials.UserName, _subject, _message);
+                _host = _email.To.ToString().Contains("@outlook") || _email.To.ToString().Contains("@hotmail") ? "smtp-mail.outlook.com" : "smtp.gmail.com";
             }
             catch (FormatException)
             {
@@ -40,11 +42,11 @@ namespace stock_quote_alert
             _emailCredentials.Password = ConsolePlus.ReadPassword();
         }
         
-        public async Task SendGmail()
+        public async Task SendEmail()
         {
             using SmtpClient smtp = new SmtpClient
             {
-                Host = "smtp.gmail.com",
+                Host = _host,
                 EnableSsl = true,
                 Port = 587,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
@@ -61,14 +63,8 @@ namespace stock_quote_alert
             {
                 Console.WriteLine("Your credentials are incorrect. Please, enter your credentials again.");
                 TryToCreateEmail();
-                await Task.Run(SendGmail);
+                await Task.Run(SendEmail);
             }
         }
-
-        //public void SendHotmail()
-        //{
-        //    
-        //}
-        
     }
 }
