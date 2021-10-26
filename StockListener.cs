@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AlphaVantage.Net.Core.Client;
-using AlphaVantage.Net.Stocks;
 using AlphaVantage.Net.Stocks.Client;
 
 namespace stock_quote_alert
@@ -11,20 +10,17 @@ namespace stock_quote_alert
     {
         //private string _selectedStockName;
         private readonly StocksClient _stocksClient;
-
-        public StockListener(string stocksApiKey)
+        
+        public StockListener()
         {
-            _stocksClient = new AlphaVantageClient(stocksApiKey).Stocks();
+            Authenticator.ReadApiKey();
+            _stocksClient = new AlphaVantageClient(Authenticator.ApiKey).Stocks();
         }
 
         public async Task SearchForStock(string wantedStockSymbol)
         {
-            ICollection<SymbolSearchMatch> searchMatches = await _stocksClient.SearchSymbolAsync(wantedStockSymbol);
-            foreach (var sm in searchMatches)
-            {
-                Console.WriteLine(sm.Name);
-            }
+            var searchMatches = await _stocksClient.SearchSymbolAsync(wantedStockSymbol);
+            Console.WriteLine(searchMatches.Count == 0 ? "Nothing found." : searchMatches.First().Name);
         }
-
     }
 }

@@ -1,18 +1,15 @@
 using System;
-using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using PanoramicData.ConsoleExtensions;
 
 namespace stock_quote_alert
 {
     public class EmailSender
     {
         private MailMessage _email;
-        private readonly NetworkCredential _emailCredentials = new ();
+        private string _host = string.Empty;
         private readonly string _subject = "Stock Quote Alert!";
         private readonly string _message = "You may check out this stock: (content)";
-        private string _host = string.Empty;
 
         public EmailSender()
         {
@@ -21,10 +18,10 @@ namespace stock_quote_alert
 
         private void TryToCreateEmail()
         {
-            ReadCredentials();
+            Authenticator.ReadUserCredentials();
             try
             {
-                _email = new MailMessage(_emailCredentials.UserName, _emailCredentials.UserName, _subject, _message);
+                _email = new MailMessage(Authenticator.EmailCredentials.UserName, Authenticator.EmailCredentials.UserName, _subject, _message);
                 _host = _email.To.ToString().Contains("@outlook") || _email.To.ToString().Contains("@hotmail") ? "smtp-mail.outlook.com" : "smtp.gmail.com";
             }
             catch (FormatException)
@@ -33,25 +30,17 @@ namespace stock_quote_alert
                 TryToCreateEmail();
             }
         }
-
-        private void ReadCredentials()
-        {
-            Console.Write("email: ");
-            _emailCredentials.UserName = Console.ReadLine() ?? string.Empty;
-            Console.Write("password: ");
-            _emailCredentials.Password = ConsolePlus.ReadPassword();
-        }
         
         public async Task SendEmail()
         {
-            using SmtpClient smtp = new SmtpClient
+            using var smtp = new SmtpClient
             {
                 Host = _host,
                 EnableSsl = true,
                 Port = 587,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
                 UseDefaultCredentials = false,
-                Credentials = _emailCredentials
+                Credentials = Authenticator.EmailCredentials
             };
             try
             {
