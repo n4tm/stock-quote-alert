@@ -1,46 +1,39 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using stock_quote_alert.GoogleCloudStorage;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace stock_quote_alert
 {
     public class EmailSender
     {
-        private MailMessage _email;
-        private string _host = string.Empty;
+        private readonly MailMessage _email;
+        private readonly CloudStorage _cloudStorage = CloudStorage.Instance;
         private readonly string _subject = "Stock Quote Alert!";
         private readonly string _message = "You may check out this stock: (content)";
+        private readonly Dictionary<string, object> _smtpClient;
 
         public EmailSender()
         {
-            TryToCreateEmail();
+            var emailConfigMetadata = _cloudStorage.GetFileAsync("emailConfig.json").Result.Metadata;
+           _smtpClient = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(emailConfigMetadata["SMTPClient"]);
+           _email = new MailMessage(emailConfigMetadata["senderEmailAddress"], emailConfigMetadata["recipientEmailAddress"], _subject, _message);
         }
 
-        private void TryToCreateEmail()
-        {
-            Authenticator.ReadUserCredentials();
-            try
-            {
-                _email = new MailMessage(Authenticator.EmailCredentials.UserName, Authenticator.EmailCredentials.UserName, _subject, _message);
-                _host = _email.To.ToString().Contains("@outlook") || _email.To.ToString().Contains("@hotmail") ? "smtp-mail.outlook.com" : "smtp.gmail.com";
-            }
-            catch (FormatException)
-            {
-                Console.WriteLine("\nThe email address or password is incorrect. Please try again.");
-                TryToCreateEmail();
-            }
-        }
-        
         public async Task SendEmail()
         {
             using var smtp = new SmtpClient
             {
-                Host = _host,
-                EnableSsl = true,
-                Port = 587,
+                Host = _smtpClient?["hostAddress"].ToString(),
+                EnableSsl = Convert.ToBoolean(_smtpClient?["EnableSsl"]),
+                Port = Convert.ToInt32(_smtpClient?["Port"]),
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = Authenticator.EmailCredentials
+                UseDefaultCredentials = Convert.ToBoolean(_smtpClient?["UseDefaultCredentials"]),
+                Credentials = new NetworkCredential(_smtpClient?["senderEmailAddress"].ToString(), 
+                    _smtpClient?["senderEmailPassword"].ToString())
             };
             try
             {
@@ -51,7 +44,6 @@ namespace stock_quote_alert
             catch (SmtpException)
             {
                 Console.WriteLine("Your credentials are incorrect. Please, enter your credentials again.");
-                TryToCreateEmail();
                 await Task.Run(SendEmail);
             }
         }

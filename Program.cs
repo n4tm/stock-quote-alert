@@ -2,12 +2,15 @@
 {
     internal static class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
+            //Console.WriteLine(obj.Result.Metadata["SMTPClient"]);
+            var emailSender = new EmailSender();
+            string stockSymbol = "AAPL";
             var stockListener = new StockListener();
-            stockListener.SearchForStock("AAPL").Wait();
-            //EmailSender emailSender = new EmailSender();
-            //emailSender.SendEmail().Wait();
+            stockListener.DisplayStockQuote(stockSymbol).Wait();
+            // EmailSender emailSender = new EmailSender();
+            // emailSender.SendEmail().Wait();
         }
     }
 }
