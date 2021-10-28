@@ -6,9 +6,9 @@
         {
             //Console.WriteLine(obj.Result.Metadata["SMTPClient"]);
             var emailSender = new EmailSender();
-            string stockSymbol = "AAPL";
-            var stockListener = new StockListener();
-            stockListener.DisplayStockQuote(stockSymbol).Wait();
+            string stockSymbol = "IBM";
+            var stockListener = new StockListener(stockSymbol);
+            stockListener.DisplayStockQuote();
             // EmailSender emailSender = new EmailSender();
             // emailSender.SendEmail().Wait();
         }

@@ -5,27 +5,34 @@ using Object = Google.Apis.Storage.v1.Data.Object;
 
 namespace stock_quote_alert.GoogleCloudStorage
 {
-    public sealed class CloudStorage : ICloudStorage
+    public sealed class CloudStorage
     {
-        private readonly StorageClient _storageClient;
-        private readonly string _bucketName;
+        private readonly Task<Object> _emailConfigFile;
+        private readonly Task<Object> _apiConfigFile;
 
         #region Singleton
         private static CloudStorage _instance;
         private CloudStorage()
         {
             var googleCredential = GoogleCredential.FromFile(Config.Get("GoogleCredentialsFile"));
-            _storageClient = StorageClient.Create(googleCredential);
-            _bucketName = Config.Get("GoogleCloudStorageBucket");
+            var storageClient = StorageClient.Create(googleCredential);
+            var bucketName = Config.Get("GoogleCloudStorageBucket");
+            _emailConfigFile = storageClient.GetObjectAsync(bucketName, GcsFiles.EmailConfigFile);
+            _apiConfigFile = storageClient.GetObjectAsync(bucketName, GcsFiles.ApiConfigFile);
         }
 
         public static CloudStorage Instance => _instance ??= new CloudStorage();
 
         #endregion
-
-        public async Task<Object> GetFileAsync(string fileName)
+        
+        public string GetFromEmailConfig(string key)
         {
-            return await _storageClient.GetObjectAsync(_bucketName, fileName);
+            return _emailConfigFile.Result.Metadata[key];
+        }
+        
+        public string GetFromApiConfig(string key)
+        {
+            return _apiConfigFile.Result.Metadata[key];
         }
     }
 }

@@ -18,9 +18,9 @@ namespace stock_quote_alert
 
         public EmailSender()
         {
-            var emailConfigMetadata = _cloudStorage.GetFileAsync("emailConfig.json").Result.Metadata;
-           _smtpClient = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(emailConfigMetadata["SMTPClient"]);
-           _email = new MailMessage(emailConfigMetadata["senderEmailAddress"], emailConfigMetadata["recipientEmailAddress"], _subject, _message);
+            _smtpClient = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(_cloudStorage.GetFromEmailConfig("SMTPClient"));
+           _email = new MailMessage(_cloudStorage.GetFromEmailConfig("senderEmailAddress"),
+               _cloudStorage.GetFromEmailConfig("recipientEmailAddress"), _subject, _message);
         }
 
         public async Task SendEmail()
