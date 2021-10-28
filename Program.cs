@@ -4,11 +4,10 @@
     {
         private static void Main(string[] args)
         {
-            //Console.WriteLine(obj.Result.Metadata["SMTPClient"]);
-            var emailSender = new EmailSender();
             string stockSymbol = "IBM";
-            var stockListener = new StockListener(stockSymbol);
-            stockListener.DisplayStockQuote();
+            var stockListener = new StockListener();
+            while (true) stockListener.ListenToStock(stockSymbol).Wait();
+
             // EmailSender emailSender = new EmailSender();
             // emailSender.SendEmail().Wait();
         }
