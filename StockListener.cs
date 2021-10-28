@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using stock_quote_alert.GoogleCloudStorage;
 using ThreeFourteen.Finnhub.Client;
 
@@ -7,6 +6,7 @@ namespace stock_quote_alert
 {
     public class StockListener
     {
+        public decimal CurrentQuotePrice { get; private set; }
         private readonly FinnhubClient _finnhubClient;
         public StockListener()
         {
@@ -14,12 +14,13 @@ namespace stock_quote_alert
             _finnhubClient = new FinnhubClient(apiKey);
         }
 
-        public async Task ListenToStock(string wantedStockSymbol)
+        public void ListenToStock(string wantedStockSymbol, int timeInterval=1000)
         {
             var quote = _finnhubClient.Stock.GetQuote(wantedStockSymbol);
             quote.Wait();
-            await Task.Delay(1000);
-            Console.WriteLine(quote.Result.Current);
+            if (quote.Result.Current == CurrentQuotePrice) return;
+            CurrentQuotePrice = quote.Result.Current;
+            Console.WriteLine("{0:0.000}",quote.Result.Current);
         }
     }
 }
