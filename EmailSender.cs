@@ -54,14 +54,15 @@ namespace stock_quote_alert
 
         public async Task SendEmailWarningAsync(StockListener stockListener, TransactionType transactionType)
         {
-            decimal stockPrice = stockListener.CurrentQuotePrice;
             string stockSymbol = stockListener.StockSymbol;
-            var stockCompany = await stockListener.GetChosenCompany();
+            var stockCompany = stockListener.ChosenCompany;
+            var stockQuote = stockListener.ChosenQuote;
+            var stockPrice = stockQuote.Current;
             string companyName = stockCompany.Name;
             string companyCurrency = stockCompany.Currency;
             string transactionTypeString = transactionType.ToString().ToLower();
             _email.Subject = $"Stock Quote Alert - {stockSymbol} price tracking";
-            _email.Body = $"Hello, the {stockSymbol} ({companyName}) price you were tracking is now costing {stockPrice} {companyCurrency}<br/>Do not miss your chance to {transactionTypeString}!";
+            _email.Body = $"Hello, the {stockSymbol} ({companyName}) price you were tracking is now costing {stockPrice} {companyCurrency}<br/><br/>Do not miss your chance to {transactionTypeString}!";
             await SendEmail();
         }
     }

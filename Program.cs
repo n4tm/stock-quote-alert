@@ -17,8 +17,9 @@ namespace stock_quote_alert
             while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Q) && !_emailSent)
             {
                 await _stockListener.ListenToStock();
-                if (_stockListener.CurrentQuotePrice >= sellPrice) await SendEmailOfType(TransactionType.Sell);
-                if (_stockListener.CurrentQuotePrice <= buyPrice) await SendEmailOfType(TransactionType.Buy);
+                var currentPrice = _stockListener.ChosenQuote.Current;
+                if (currentPrice >= sellPrice) await SendEmailOfType(TransactionType.Sell);
+                if (currentPrice <= buyPrice) await SendEmailOfType(TransactionType.Buy);
             }
         }
 

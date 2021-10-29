@@ -9,28 +9,33 @@ namespace stock_quote_alert
     public class StockListener
     {
         public string StockSymbol { get; }
-        public decimal CurrentQuotePrice { get; private set; }
+        public Company ChosenCompany { get; }
+        public Quote ChosenQuote { get; }
         private readonly FinnhubClient _finnhubClient;
         private readonly string _apiKey = CloudStorage.Instance.GetFromApiConfig("key");
+        private decimal _currentQuotePrice;
 
         public StockListener(string wantedStockSymbol)
         {
             _finnhubClient = new FinnhubClient(_apiKey);
             StockSymbol = wantedStockSymbol;
+            ChosenQuote = GetChosenQuote().Result;
+            ChosenCompany = GetChosenCompany().Result;
         }
 
         public async Task ListenToStock()
         {
             try
             {
-                var quote = await _finnhubClient.Stock.GetQuote(StockSymbol);
-                var company = await GetChosenCompany();
-                if (quote.Current == 0)
+                if (ChosenQuote.Current == 0)
                     throw new StockSymbolException(-1, $"Unable to find {StockSymbol} data from API.");
-                if (quote.Current == CurrentQuotePrice) return;
-                CurrentQuotePrice = quote.Current;
-                Console.WriteLine($"({DateTime.Now}) " + $"{StockSymbol}" + ": {0:0.0000} " + company.Currency,
-                    quote.Current);
+                //if (quote.Current == CurrentQuotePrice) return;
+                _currentQuotePrice = ChosenQuote.Current;
+                WriteColorful($"({DateTime.Now}) ", ConsoleColor.DarkCyan);
+                Console.Write($"{StockSymbol}: ");
+                WriteColorful($"{_currentQuotePrice:0.0000} ", ConsoleColor.Green);
+                Console.WriteLine(ChosenCompany.Currency);
+                await Task.Delay(3000);
             }
             catch (StockSymbolException)
             {
@@ -40,9 +45,22 @@ namespace stock_quote_alert
             }
         }
 
-        public async Task<Company> GetChosenCompany()
+        private async Task<Company> GetChosenCompany()
         {
             return await _finnhubClient.Stock.GetCompany(StockSymbol);
+        }
+
+        private async Task<Quote> GetChosenQuote()
+        {
+            return await _finnhubClient.Stock.GetQuote(StockSymbol);
+        }
+
+        private void WriteColorful(string text, ConsoleColor color, bool lineBreak=false)
+        {
+            Console.ForegroundColor = color;
+            if (lineBreak) Console.WriteLine(text);
+            else Console.Write(text);
+            Console.ResetColor();
         }
     }
 }
