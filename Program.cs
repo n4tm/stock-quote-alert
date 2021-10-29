@@ -1,27 +1,32 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace stock_quote_alert
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            string stockSymbol = "IBM";
+            string stockSymbol = args[0];
             var stockListener = new StockListener(stockSymbol);
             var emailSender = new EmailSender();
-            emailSender.SendEmailWarningAsync(stockListener, TransactionType.Buy).Wait();
-            /*
-            //string stockSymbol = args[0];
-            //decimal sellPrice = Convert.ToDecimal(args[1]);
-            //decimal buyPrice = Convert.ToDecimal(args[2]);
-            var stockListener = new StockListener();
-            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Q))
+            decimal sellPrice = Convert.ToDecimal(args[1]);
+            decimal buyPrice = Convert.ToDecimal(args[2]);
+            bool emailSent = false;
+            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Q) && !emailSent)
             {
-                stockListener.ListenToStock(stockSymbol);
-                //if (stockListener.CurrentQuotePrice >= sellPrice) Send email warning selling
-                //if (stockListener.CurrentQuotePrice <= buyPrice) Send email warning buying
+                await stockListener.ListenToStock();
+                if (stockListener.CurrentQuotePrice >= sellPrice)
+                {
+                    await emailSender.SendEmailWarningAsync(stockListener, TransactionType.Sell);
+                    emailSent = true;
+                }
+                if (stockListener.CurrentQuotePrice <= buyPrice)
+                {
+                    await emailSender.SendEmailWarningAsync(stockListener, TransactionType.Buy);
+                    emailSent = true;
+                }
             }
-            */
         }
     }
 }

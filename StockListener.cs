@@ -19,13 +19,12 @@ namespace stock_quote_alert
             StockSymbol = wantedStockSymbol;
         }
 
-        public void ListenToStock(int timeInterval=1000)
+        public async Task ListenToStock()
         {
-            var quote = _finnhubClient.Stock.GetQuote(StockSymbol);
-            quote.Wait();
-            if (quote.Result.Current == CurrentQuotePrice) return;
-            CurrentQuotePrice = quote.Result.Current;
-            Console.WriteLine("{0:0.000}",quote.Result.Current);
+            var quote = await _finnhubClient.Stock.GetQuote(StockSymbol);
+            if (quote.Current == CurrentQuotePrice) return;
+            CurrentQuotePrice = quote.Current;
+            Console.WriteLine("{0:0.000}",quote.Current);
         }
 
         public async Task<Company> GetChosenCompany()

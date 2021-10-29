@@ -14,7 +14,7 @@ namespace stock_quote_alert.GoogleCloudStorage
         private static CloudStorage _instance;
         private CloudStorage()
         {
-            var googleCredential = GoogleCredential.FromFile(Config.Get("GoogleCredentialsFile"));
+            var googleCredential = GoogleCredential.FromFile(Config.AssemblyDirectory+'/'+Config.Get("GoogleCredentialsFile"));
             var storageClient = StorageClient.Create(googleCredential);
             var bucketName = Config.Get("GoogleCloudStorageBucket");
             _emailConfigFile = storageClient.GetObjectAsync(bucketName, GcsFiles.EmailConfigFile);
