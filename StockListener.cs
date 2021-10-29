@@ -25,16 +25,17 @@ namespace stock_quote_alert
             {
                 var quote = await _finnhubClient.Stock.GetQuote(StockSymbol);
                 var company = await GetChosenCompany();
+                if (quote.Current == 0)
+                    throw new StockSymbolException(-1, $"Unable to find {StockSymbol} data from API.");
                 if (quote.Current == CurrentQuotePrice) return;
                 CurrentQuotePrice = quote.Current;
                 Console.WriteLine($"({DateTime.Now}) " + $"{StockSymbol}" + ": {0:0.0000} " + company.Currency,
                     quote.Current);
             }
-            catch (FinnhubException e)
+            catch (StockSymbolException)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Please, check if the stock symbol (the first parameter) was correctly typed.");
                 Console.WriteLine($"Possible results: https://finnhub.io/api/v1/search?q={StockSymbol}&token={_apiKey}");
+                Console.WriteLine("Aborted\n");
                 Environment.Exit(-1);
             }
         }
