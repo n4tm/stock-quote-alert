@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using stock_quote_alert.GoogleCloudStorage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -12,7 +13,7 @@ namespace stock_quote_alert
     {
         private readonly MailMessage _email;
         private readonly CloudStorage _cloudStorage = CloudStorage.Instance;
-        private const string Subject = "Stock Quote Alert!";
+        private readonly string _subject = string.Empty;
         private readonly string _message = string.Empty;
         private readonly Dictionary<string, object> _smtpClient;
 
@@ -20,7 +21,11 @@ namespace stock_quote_alert
         {
             _smtpClient = JsonSerializer.Deserialize<Dictionary<string, dynamic>>(_cloudStorage.GetFromEmailConfig("SMTPClient"));
            _email = new MailMessage(_cloudStorage.GetFromEmailConfig("senderEmailAddress"),
-               _cloudStorage.GetFromEmailConfig("recipientEmailAddress"), Subject, _message);
+               _cloudStorage.GetFromEmailConfig("recipientEmailAddress"), _subject, _message)
+           {
+               IsBodyHtml = true,
+               BodyEncoding = Encoding.UTF8
+           };
         }
 
         private async Task SendEmail()
@@ -50,13 +55,13 @@ namespace stock_quote_alert
         public async Task SendEmailWarningAsync(StockListener stockListener, TransactionType transactionType)
         {
             decimal stockPrice = stockListener.CurrentQuotePrice;
-            string emailRecipientName = _email.To.Count == 0 ? " "+_email.To[0].User : string.Empty;
             string stockSymbol = stockListener.StockSymbol;
             var stockCompany = await stockListener.GetChosenCompany();
             string companyName = stockCompany.Name;
             string companyCurrency = stockCompany.Currency;
             string transactionTypeString = transactionType.ToString().ToLower();
-            _email.Body = $"Hello{emailRecipientName}, {stockSymbol} ({companyName}) price you were tracking is now costing {companyCurrency}{stockPrice}.\nDo not miss your chance to {transactionTypeString}!";
+            _email.Subject = $"Stock Quote Alert - {stockSymbol} price tracking";
+            _email.Body = $"Hello, the {stockSymbol} ({companyName}) price you were tracking is now costing {stockPrice} {companyCurrency}<br/>Do not miss your chance to {transactionTypeString}!";
             await SendEmail();
         }
     }

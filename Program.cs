@@ -5,28 +5,27 @@ namespace stock_quote_alert
 {
     internal static class Program
     {
+        private static readonly EmailSender EmailSender = new();
+        private static StockListener _stockListener;
+        private static bool _emailSent;
         private static async Task Main(string[] args)
         {
             string stockSymbol = args[0];
-            var stockListener = new StockListener(stockSymbol);
-            var emailSender = new EmailSender();
+            _stockListener = new StockListener(stockSymbol);
             decimal sellPrice = Convert.ToDecimal(args[1]);
             decimal buyPrice = Convert.ToDecimal(args[2]);
-            bool emailSent = false;
-            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Q) && !emailSent)
+            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Q) && !_emailSent)
             {
-                await stockListener.ListenToStock();
-                if (stockListener.CurrentQuotePrice >= sellPrice)
-                {
-                    await emailSender.SendEmailWarningAsync(stockListener, TransactionType.Sell);
-                    emailSent = true;
-                }
-                if (stockListener.CurrentQuotePrice <= buyPrice)
-                {
-                    await emailSender.SendEmailWarningAsync(stockListener, TransactionType.Buy);
-                    emailSent = true;
-                }
+                await _stockListener.ListenToStock();
+                if (_stockListener.CurrentQuotePrice >= sellPrice) await SendEmailOfType(TransactionType.Sell);
+                if (_stockListener.CurrentQuotePrice <= buyPrice) await SendEmailOfType(TransactionType.Buy);
             }
+        }
+
+        private static async Task SendEmailOfType(TransactionType transactionType)
+        {
+            await EmailSender.SendEmailWarningAsync(_stockListener, transactionType);
+            _emailSent = true;
         }
     }
 }
